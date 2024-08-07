@@ -2,17 +2,18 @@ import { Barbershop } from "@prisma/client"
 import { Card, CardContent } from "./ui/card"
 import Image from "next/image"
 import { Button } from "./ui/button"
-import { Badge, StarsIcon } from "lucide-react"
+import { Badge } from "./ui/badge"
+import { StarsIcon } from "lucide-react" // Removi o StarIcon não utilizado
 
 interface BarbershopItemProps {
   barbershop: Barbershop
 }
 
-const BarbeshopItem = ({ barbershop }: BarbershopItemProps) => {
+const BarbershopItem = ({ barbershop }: BarbershopItemProps) => {
   return (
     <Card className="min-w-[167px] rounded-2xl">
       <CardContent className="p-0 px-1 pt-1">
-        {/* IMAGEM */}
+        {/* Imagem */}
         <div className="relative h-[159px] w-full">
           <Image
             alt={barbershop.name}
@@ -30,7 +31,7 @@ const BarbeshopItem = ({ barbershop }: BarbershopItemProps) => {
           </Badge>
         </div>
 
-        {/*TEXTO */}
+        {/* Texto */}
         <div className="px-1 py-3">
           <h3 className="truncate font-semibold">{barbershop.name}</h3>
           <p className="truncate text-sm text-gray-400">{barbershop.name}</p>
@@ -43,4 +44,4 @@ const BarbeshopItem = ({ barbershop }: BarbershopItemProps) => {
   )
 }
 
-export default BarbeshopItem
+export default BarbershopItem

@@ -5,9 +5,11 @@ import { Avatar, AvatarImage } from "./_components/ui/avatar"
 import { db } from "./_lib/prisma"
 import { Input } from "./_components/ui/input" // Corrigi o caminho de importação do Input
 import { Button } from "./_components/ui/button"
-import { EyeIcon, FootprintsIcon, SearchIcon } from "lucide-react"
+import { SearchIcon } from "lucide-react"
 import Header from "./_components/header"
 import BarbeshopItem from "./_components/barbershop-item"
+import { quickSearchOptions } from "./_constants/search"
+import BookingItem from "./_components/booking-item"
 
 const Home = async () => {
   // Chamar banco de dados
@@ -37,35 +39,17 @@ const Home = async () => {
 
         {/* Busca rapida */}
         <div className="mt-6 flex gap-3 overflow-x-scroll [&::-webkit-scrollbar]:hidden">
-          <Button className="gap-2" variant="secondary">
-            <Image src="/cabelo.svg" width={16} height={16} alt="Cabelo" />
-            Cabelo
-          </Button>
-
-          <Button className="gap-2" variant="secondary">
-            <Image src="/barba.svg" width={16} height={16} alt="Barba" />
-            Barba
-          </Button>
-
-          <Button className="gap-2" variant="secondary">
-            <Image
-              src="/acabamento.svg"
-              width={16}
-              height={16}
-              alt="Acabamento"
-            />
-            Acabamento
-          </Button>
-
-          <Button className="gap-2" variant="secondary">
-            <FootprintsIcon width={16} />
-            Pézinho
-          </Button>
-
-          <Button className="gap-2" variant="secondary">
-            <EyeIcon width={16} />
-            Sobrancelha
-          </Button>
+          {quickSearchOptions.map((option) => (
+            <Button className="gap-2" variant="secondary" key={option.title}>
+              <Image
+                src={option.imageUrl ?? ""}
+                width={16}
+                height={16}
+                alt={option.title}
+              />
+              {option.title}
+            </Button>
+          ))}
         </div>
 
         {/* Imagem */}
@@ -79,9 +63,7 @@ const Home = async () => {
         </div>
 
         {/* Agendamento */}
-        <h2 className="mb-3 mt-6 text-xs font-bold uppercase text-gray-400">
-          Agendamentos
-        </h2>
+        <BookingItem />
 
         <Card className="mt-6">
           <CardContent className="flex justify-between p-0">

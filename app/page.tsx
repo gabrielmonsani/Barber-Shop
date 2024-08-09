@@ -1,16 +1,20 @@
+import Header from "./_components/header"
+import { Button } from "./_components/ui/button"
 import Image from "next/image"
 import { db } from "./_lib/prisma"
-import { Input } from "./_components/ui/input" // Corrigi o caminho de importação do Input
-import { Button } from "./_components/ui/button"
-import { SearchIcon } from "lucide-react"
-import Header from "./_components/header"
-import BarbeshopItem from "./_components/barbershop-item"
+import BarbershopItem from "./_components/barbershop-item"
 import { quickSearchOptions } from "./_constants/search"
 import BookingItem from "./_components/booking-item"
+import Search from "./_components/search"
 
 const Home = async () => {
-  // Chamar banco de dados
-  const barbershops = await db.barbershop.findMany({})
+  // Fetching data from the database
+  const barbershops = await db.barbershop.findMany({
+    orderBy: {
+      name: "desc",
+    },
+  })
+
   const popularBarbershops = await db.barbershop.findMany({
     orderBy: {
       name: "desc",
@@ -22,28 +26,29 @@ const Home = async () => {
       {/* Header */}
       <Header />
       <div className="p-5">
+        {/* Texto */}
         <h2 className="text-xl font-bold">Olá, Gabriel!</h2>
-        <p>Quarta-feira, 07 de agosto.</p>
+        <p>Segunda-feira, 05 de agosto.</p>
 
         {/* Busca */}
-        <div className="mt-6 flex items-center gap-8">
-          <Input placeholder="Faça sua busca..." />{" "}
-          {/* Corrigi a digitação no placeholder */}
-          <Button>
-            <SearchIcon />
-          </Button>
+        <div className="mt-6">
+          <Search />
         </div>
 
-        {/* Busca rapida */}
+        {/* Busca rápida */}
         <div className="mt-6 flex gap-3 overflow-x-scroll [&::-webkit-scrollbar]:hidden">
           {quickSearchOptions.map((option) => (
             <Button className="gap-2" variant="secondary" key={option.title}>
-              <Image
-                src={option.imageUrl ?? ""}
-                width={16}
-                height={16}
-                alt={option.title}
-              />
+              {option.imageUrl && typeof option.imageUrl === "string" ? (
+                <Image
+                  src={option.imageUrl}
+                  width={16}
+                  height={16}
+                  alt={option.title}
+                />
+              ) : (
+                <span>Imagem não disponível</span>
+              )}
               {option.title}
             </Button>
           ))}
@@ -67,7 +72,7 @@ const Home = async () => {
         </h2>
         <div className="flex gap-4 overflow-auto [&::-webkit-scrollbar]:hidden">
           {barbershops.map((barbershop) => (
-            <BarbeshopItem key={barbershop.id} barbershop={barbershop} />
+            <BarbershopItem key={barbershop.id} barbershop={barbershop} />
           ))}
         </div>
 
@@ -76,7 +81,7 @@ const Home = async () => {
         </h2>
         <div className="flex gap-4 overflow-auto [&::-webkit-scrollbar]:hidden">
           {popularBarbershops.map((barbershop) => (
-            <BarbeshopItem key={barbershop.id} barbershop={barbershop} />
+            <BarbershopItem key={barbershop.id} barbershop={barbershop} />
           ))}
         </div>
       </div>

@@ -6,15 +6,10 @@ import BarbershopItem from "./_components/barbershop-item"
 import { quickSearchOptions } from "./_constants/search"
 import BookingItem from "./_components/booking-item"
 import Search from "./_components/search"
+import Link from "next/link"
 
 const Home = async () => {
-  // Fetching data from the database
-  const barbershops = await db.barbershop.findMany({
-    orderBy: {
-      name: "desc",
-    },
-  })
-
+  const barbershops = await db.barbershop.findMany({})
   const popularBarbershops = await db.barbershop.findMany({
     orderBy: {
       name: "desc",
@@ -38,19 +33,24 @@ const Home = async () => {
         {/* Busca rápida */}
         <div className="mt-6 flex gap-3 overflow-x-scroll [&::-webkit-scrollbar]:hidden">
           {quickSearchOptions.map((option) => (
-            <Button className="gap-2" variant="secondary" key={option.title}>
-              {option.imageUrl && typeof option.imageUrl === "string" ? (
-                <Image
-                  src={option.imageUrl}
-                  width={16}
-                  height={16}
-                  alt={option.title}
-                />
-              ) : (
-                <span>Imagem não disponível</span>
-              )}
-              {option.title}
-            </Button>
+            <Link
+              href={`/barbershops?service=${option.title}`}
+              key={option.title}
+            >
+              <Button className="gap-2" variant="secondary">
+                {option.imageUrl && typeof option.imageUrl === "string" ? (
+                  <Image
+                    src={option.imageUrl}
+                    width={16}
+                    height={16}
+                    alt={option.title}
+                  />
+                ) : (
+                  <span>Imagem não disponível</span>
+                )}
+                {option.title}
+              </Button>
+            </Link>
           ))}
         </div>
 

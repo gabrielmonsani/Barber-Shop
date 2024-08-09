@@ -2,7 +2,7 @@
 
 import { Button } from "./ui/button"
 import { CalendarIcon, HomeIcon, LogInIcon, LogOutIcon } from "lucide-react"
-import { SheetClose, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet"
+import { SheetContent, SheetHeader, SheetTitle } from "./ui/sheet"
 import { quickSearchOptions } from "../_constants/search"
 import Link from "next/link"
 import Image from "next/image"
@@ -78,14 +78,12 @@ const SidebarSheet = () => {
       </div>
 
       <div className="flex flex-col gap-2 border-b border-solid py-5">
-        <SheetClose asChild>
-          <Button className="justify-start gap-2" variant="ghost" asChild>
-            <Link href="/">
-              <HomeIcon size={18} />
-              Início
-            </Link>
-          </Button>
-        </SheetClose>
+        <Button className="justify-start gap-2" variant="ghost" asChild>
+          <Link href="/">
+            <HomeIcon size={18} />
+            Início
+          </Link>
+        </Button>
         <Button className="justify-start gap-2" variant="ghost">
           <CalendarIcon size={18} />
           Agendamentos
@@ -95,17 +93,24 @@ const SidebarSheet = () => {
       <div className="flex flex-col gap-2 border-b border-solid py-5">
         {quickSearchOptions.map((option) => (
           <Button
-            key={option.title}
             className="justify-start gap-2"
             variant="ghost"
+            key={option.title}
+            asChild
           >
-            <Image
-              alt={option.title}
-              src={option.imageUrl ?? ""}
-              height={18}
-              width={18}
-            />
-            {option.title}
+            <Link href={`/barbershops?service=${option.title}`}>
+              {option.imageUrl ? (
+                <Image
+                  alt={option.title}
+                  src={option.imageUrl}
+                  height={18}
+                  width={18}
+                />
+              ) : (
+                <span>Imagem não disponível</span>
+              )}
+              {option.title}
+            </Link>
           </Button>
         ))}
       </div>

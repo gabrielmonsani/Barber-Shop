@@ -1,5 +1,4 @@
 "use client"
-
 import { Barbershop, BarbershopService, Booking } from "@prisma/client"
 import Image from "next/image"
 import { Button } from "./ui/button"
@@ -13,8 +12,8 @@ import {
 } from "./ui/sheet"
 import { Calendar } from "./ui/calendar"
 import { ptBR } from "date-fns/locale"
-import { useEffect, useState } from "react"
-import { format, set } from "date-fns"
+import { useEffect, useMemo, useState } from "react"
+import { format, isPast, isToday, set } from "date-fns"
 import { createBooking } from "../_actions/create-booking"
 import { useSession } from "next-auth/react"
 import { toast } from "sonner"
@@ -51,15 +50,25 @@ const TIME_LIST = [
   "18:00",
 ]
 
-const getTimeList = (bookings: Booking[]) => {
+const getTimeList = (bookings: Booking[], selectedDay: Date) => {
   return TIME_LIST.filter((time) => {
-    const [hour, minutes] = time.split(":").map(Number)
+    const hour = Number(time.split(":")[0])
+    const minutes = Number(time.split(":")[1])
+
+    const timeIsOnThePast = isPast(set(new Date(), { hours: hour, minutes }))
+    if (timeIsOnThePast && isToday(selectedDay)) {
+      return false
+    }
+
     const hasBookingOnCurrentTime = bookings.some(
       (booking) =>
         booking.date.getHours() === hour &&
         booking.date.getMinutes() === minutes,
     )
-    return !hasBookingOnCurrentTime
+    if (hasBookingOnCurrentTime) {
+      return false
+    }
+    return true
   })
 }
 
@@ -74,7 +83,7 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
   const [bookingSheetIsOpen, setBookingSheetIsOpen] = useState(false)
 
   useEffect(() => {
-    const fetchBookings = async () => {
+    const fetch = async () => {
       if (!selectedDay) return
       const bookings = await getBookings({
         date: selectedDay,
@@ -82,15 +91,14 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
       })
       setDayBookings(bookings)
     }
-    fetchBookings()
+    fetch()
   }, [selectedDay, service.id])
 
   const handleBookingClick = () => {
     if (data?.user) {
-      setBookingSheetIsOpen(true)
-    } else {
-      setSignInDialogIsOpen(true)
+      return setBookingSheetIsOpen(true)
     }
+    return setSignInDialogIsOpen(true)
   }
 
   const handleBookingSheetOpenChange = () => {
@@ -111,8 +119,12 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
   const handleCreateBooking = async () => {
     try {
       if (!selectedDay || !selectedTime) return
-      const [hour, minute] = selectedTime.split(":").map(Number)
-      const newDate = set(selectedDay, { hours: hour, minutes: minute })
+      const hour = Number(selectedTime.split(":")[0])
+      const minute = Number(selectedTime.split(":")[1])
+      const newDate = set(selectedDay, {
+        minutes: minute,
+        hours: hour,
+      })
       await createBooking({
         serviceId: service.id,
         date: newDate,
@@ -124,6 +136,11 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
       toast.error("Erro ao criar reserva!")
     }
   }
+
+  const timeList = useMemo(() => {
+    if (!selectedDay) return []
+    return getTimeList(dayBookings, selectedDay)
+  }, [dayBookings, selectedDay])
 
   return (
     <>
@@ -161,12 +178,10 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                 >
                   Reservar
                 </Button>
-
                 <SheetContent className="px-0">
                   <SheetHeader>
                     <SheetTitle>Fazer Reserva</SheetTitle>
                   </SheetHeader>
-
                   <div className="border-b border-solid py-5">
                     <Calendar
                       mode="single"
@@ -202,18 +217,24 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
 
                   {selectedDay && (
                     <div className="flex gap-3 overflow-x-auto border-b border-solid p-5 [&::-webkit-scrollbar]:hidden">
-                      {getTimeList(dayBookings).map((time) => (
-                        <Button
-                          key={time}
-                          variant={
-                            selectedTime === time ? "default" : "outline"
-                          }
-                          className="rounded-full"
-                          onClick={() => handleTimeSelect(time)}
-                        >
-                          {time}
-                        </Button>
-                      ))}
+                      {timeList.length > 0 ? (
+                        timeList.map((time) => (
+                          <Button
+                            key={time}
+                            variant={
+                              selectedTime === time ? "default" : "outline"
+                            }
+                            className="rounded-full"
+                            onClick={() => handleTimeSelect(time)}
+                          >
+                            {time}
+                          </Button>
+                        ))
+                      ) : (
+                        <p className="text-xs">
+                          Não há horários disponíveis para este dia.
+                        </p>
+                      )}
                     </div>
                   )}
 
@@ -230,7 +251,6 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                               }).format(Number(service.price))}
                             </p>
                           </div>
-
                           <div className="flex items-center justify-between">
                             <h2 className="text-sm text-gray-400">Data</h2>
                             <p className="text-sm">
@@ -239,12 +259,10 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                               })}
                             </p>
                           </div>
-
                           <div className="flex items-center justify-between">
                             <h2 className="text-sm text-gray-400">Horário</h2>
                             <p className="text-sm">{selectedTime}</p>
                           </div>
-
                           <div className="flex items-center justify-between">
                             <h2 className="text-sm text-gray-400">Barbearia</h2>
                             <p className="text-sm">{barbershop.name}</p>
@@ -253,7 +271,6 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                       </Card>
                     </div>
                   )}
-
                   <SheetFooter className="mt-5 px-5">
                     <Button
                       onClick={handleCreateBooking}
@@ -268,7 +285,6 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
           </div>
         </CardContent>
       </Card>
-
       <Dialog
         open={signInDialogIsOpen}
         onOpenChange={(open) => setSignInDialogIsOpen(open)}
